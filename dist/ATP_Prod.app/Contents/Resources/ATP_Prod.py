@@ -1,15 +1,96 @@
-import tkinter as tk
-from tkinter import filedialog
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-import os
 
-root =tk.Tk()
-root.geometry("800x400")
-root.title("ATP Production Calculator")
-label = tk.Label(root, text="ATP Production Calculator")
-label.grid(column=0, row=0)
+
+import os
+import sys
+import subprocess
+import pkg_resources
+import cmath  # explicitly import to ensure bundlers include this stdlib module
+import tkinter as tk
+from tkinter import filedialog, messagebox
+
+def install_dependencies(missing_packages):
+    """Install missing packages using pip."""
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install"] + missing_packages)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error installing packages: {e}")
+        return False
+
+def check_and_install_dependencies():
+    """Check if required packages are installed and offer to install if missing."""
+    required_packages = {
+        'pandas': 'pandas>=2.0.0',
+        'numpy': 'numpy>=1.24.0',
+        'matplotlib': 'matplotlib>=3.7.0',
+        'openpyxl': 'openpyxl>=3.1.0'  # Required for reading xlsx files
+    }
+    
+    missing = []
+    for package, spec in required_packages.items():
+        try:
+            pkg_resources.require(spec)
+        except (pkg_resources.VersionConflict, pkg_resources.DistributionNotFound):
+            missing.append(spec)
+    
+    if missing:
+        print("Missing required packages:", missing)
+        root = tk.Tk()
+        root.withdraw()  # Hide the main window
+        
+        if messagebox.askyesno("Missing Dependencies", 
+            "Some required packages are missing. Would you like to install them now?\n\n" +
+            "Missing packages:\n" + "\n".join(missing)):
+            
+            if install_dependencies(missing):
+                messagebox.showinfo("Success", "Dependencies installed successfully. Please restart the application.")
+            else:
+                messagebox.showerror("Error", "Failed to install dependencies. Please install them manually:\n\npip install " + " ".join(missing))
+            
+            root.destroy()
+            sys.exit(1)
+        else:
+            messagebox.showwarning("Warning", "The application may not work correctly without required packages.")
+            root.destroy()
+            sys.exit(1)
+
+# Check and install dependencies before any other imports
+if __name__ == '__main__':
+    # If running as a frozen app (py2app/PyInstaller), dependencies should be bundled.
+    if getattr(sys, 'frozen', False):
+        try:
+            import matplotlib.pyplot as plt
+            import pandas as pd
+            import numpy as np
+        except Exception as e:
+            # If a package is missing from the bundle, inform the user and instruct to rebuild.
+            tmp_root = tk.Tk()
+            tmp_root.withdraw()
+            messagebox.showerror(
+                "Missing bundled dependency",
+                f"A required package is missing from the application bundle: {e}\n\n"
+                "Rebuild the app and ensure these packages are included (see setup.py OPTIONS['packages'])."
+            )
+            sys.exit(1)
+    else:
+        # In development mode, offer to install missing packages via pip
+        check_and_install_dependencies()
+        try:
+            import matplotlib.pyplot as plt
+            import pandas as pd
+            import numpy as np
+        except ImportError as e:
+            tmp_root = tk.Tk()
+            tmp_root.withdraw()
+            messagebox.showerror("Import Error", f"Failed to import required packages: {e}\n\nPlease install dependencies and restart.")
+            sys.exit(1)
+
+    # Start the main application
+    root = tk.Tk()
+    root.geometry("800x400")
+    root.title("ATP Production Calculator")
+    label = tk.Label(root, text="ATP Production Calculator")
+    label.grid(column=0, row=0)
 
 
 # add your GUI components and logic here

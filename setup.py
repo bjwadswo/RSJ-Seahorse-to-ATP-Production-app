@@ -23,7 +23,15 @@ for dirpath, dirnames, filenames in os.walk(DATA_DIR):
     DATA_FILES.append((dest, files))
 
 APP = ['ATP_Prod.py']
-OPTIONS = {}
+# Ensure py2app includes certain modules that its finder can miss (e.g. cmath)
+OPTIONS = {
+    'includes': ['cmath'],
+    # include full packages so py2app bundles them into the standalone app
+    'packages': ['pandas', 'numpy', 'matplotlib', 'openpyxl'],
+    # # Icon file for the .app (must be an .icns file). Create/app_icon.icns in the data folder and
+    # py2app will embed it as the application icon.
+    'iconfile': os.path.join('data', 'app_icon.icns'),
+}
 
 setup(
     app=APP,
