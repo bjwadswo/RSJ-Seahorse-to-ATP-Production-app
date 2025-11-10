@@ -31,6 +31,8 @@ OPTIONS = {
     # # Icon file for the .app (must be an .icns file). Create/app_icon.icns in the data folder and
     # py2app will embed it as the application icon.
     'iconfile': os.path.join('data', 'app_icon.icns'),
+    # Build for both Intel and Apple Silicon
+    'arch': 'universal2',
 }
 
 setup(
